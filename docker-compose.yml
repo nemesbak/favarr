@@ -1,9 +1,40 @@
+# ─────────────────────────────────────────────────────────────────────────
+#  Favarr ❤️ — rellena SOLO las líneas marcadas con 👉  /  fill in ONLY the 👉 lines
+# ─────────────────────────────────────────────────────────────────────────
 services:
-  pidelo:
-    build: https://github.com/nemesbak/pidelo.git
-    container_name: pidelo
+  favarr:
+    build: https://github.com/nemesbak/favarr.git   # se construye solo / builds itself
+    container_name: favarr
     restart: unless-stopped
-    env_file: config.env
     volumes:
-      - /ruta/a/tu/media/descubre:/catalogo   # carpeta NUEVA y vacía para el escaparate
-      - ./datos:/datos                         # aquí guarda quién ha pedido qué
+      # 👉 Carpeta NUEVA y vacía junto a tus películas  /  a NEW empty folder next to your movies
+      - /mnt/user/media/descubre:/catalogo
+      - ./favarr-datos:/datos
+    environment:
+      # 👉 Seerr / Jellyseerr / Overseerr
+      SEERR_URL: http://192.168.1.10:5055
+      SEERR_API_KEY: pega-aqui-la-clave
+
+      # 👉 Jellyfin (si no lo usas, borra estas 3 líneas / delete if you don't use it)
+      JELLYFIN_URL: http://192.168.1.10:8096
+      JELLYFIN_API_KEY: pega-aqui-la-clave
+      JELLYFIN_CARPETA: /media/descubre      # la carpeta de arriba, tal como la ve Jellyfin
+
+      # 👉 Emby (si no lo usas, borra estas 3 líneas / delete if you don't use it)
+      EMBY_URL: http://192.168.1.10:8096
+      EMBY_API_KEY: pega-aqui-la-clave
+      EMBY_CARPETA: /media/descubre          # la carpeta de arriba, tal como la ve Emby
+
+      # Idioma / language: es · en
+      IDIOMA: es
+      TZ: Europe/Madrid
+
+      # ── Opcional / optional ── (quita la # para cambiarlo / remove the # to change)
+      # LIMITE_DIA: 3            # peticiones por persona y día / requests per person per day
+      # MAX_PENDIENTES: 5        # esperando a la vez / waiting at once
+      # SOLO_TEMPORADA_1: si     # series: solo la 1.ª temporada / series: first season only
+      # PELICULAS: 100
+      # SERIES: 50
+      # TELEGRAM_TOKEN: ""
+      # TELEGRAM_ADMIN: ""
+      # TELEGRAM_USUARIOS: "ana=123456,juan=789012"

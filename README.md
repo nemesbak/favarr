@@ -1,129 +1,138 @@
-# Pídelo ❤️
+<p align="center"><img src="docs/icono.png" width="96"></p>
 
-**Pide películas y series desde Jellyfin o Emby dándole a «favorito».**
-
-Pídelo añade a tu servidor una biblioteca nueva, **«Descubre»**. En ella salen las películas y series de moda que **todavía no tienes**.
-
-Para pedir algo, tus usuarios solo tienen que darle al **❤️**. No necesitan otra app, ni otra web, ni otra contraseña.
-
-![Lo que ve quien abre un título del escaparate](docs/aviso.png)
+<h1 align="center">Favarr</h1>
+<p align="center"><b>Tus usuarios piden películas y series dándole al ❤️. Nada más.</b></p>
+<p align="center"><a href="README.en.md">🇬🇧 English</a></p>
 
 ---
 
-## ¿Cómo funciona?
+## ¿Qué hace?
 
-1. Cada noche Pídelo llena la biblioteca **Descubre** con lo más popular que aún no tienes.
-2. Alguien entra y le da **❤️** a algo que le apetece ver.
-3. En un par de minutos, Pídelo lo pide **en nombre de esa persona** a Seerr (Jellyseerr u Overseerr) y le quita el ❤️.
-4. Cuando ya se ha descargado, desaparece de «Descubre» y aparece en tu biblioteca normal.
-5. Si usas Telegram, la persona recibe dos mensajes: «✅ Pedido» y, cuando llega, «🎉 Ya está disponible».
+Te aparece una biblioteca nueva en Jellyfin o Emby: **✨ Descubre y pide**.
 
-Ocupa casi nada: los títulos del escaparate son un vídeo de aviso de 26 KB. Unos 150 títulos ocupan **menos de 1 MB** en total.
+Dentro salen las películas y series **de moda que todavía no tienes**.
 
----
+👉 Alguien le da al **❤️ (favorito)** → Favarr lo **pide solo** → cuando se descarga, **aparece en tu servidor**.
 
-## Qué necesitas
+Tus usuarios no tienen que instalar nada ni aprender nada nuevo. Si abren uno de esos títulos sin darle al ❤️, ven este aviso:
 
-- **Jellyfin**, **Emby** o los dos.
-- **Seerr**, **Jellyseerr** u **Overseerr**, ya conectado a tu servidor y a Radarr/Sonarr.
-- **Docker** (en Unraid, Synology, un NAS, un PC… donde ya tengas lo demás).
+<p align="center"><img src="docs/aviso.png" width="560"></p>
 
 ---
 
-## Instalación (10 minutos)
+## Lo que necesitas
 
-### Paso 1 · Consigue las claves
-
-- **Seerr:** *Ajustes → General → Clave API*. Copia la clave.
-- **Jellyfin:** *Panel de control → Claves API → ➕*. Ponle de nombre «Pídelo» y copia la clave.
-- **Emby:** *Ajustes → Claves API → Nueva clave*. Ponle de nombre «Pídelo» y copia la clave.
-
-### Paso 2 · Crea una carpeta vacía
-
-Crea la carpeta **junto a tus películas** (en el mismo disco o recurso compartido), por ejemplo:
-
-```
-/mnt/user/media/descubre
-```
-
-### Paso 3 · Prepara los archivos
-
-1. Crea una carpeta llamada `pidelo` donde guardes tus Docker.
-2. Copia dentro estos dos archivos de este repositorio:
-   - [`docker-compose.yml`](docker-compose.yml)
-   - [`config.env.ejemplo`](config.env.ejemplo), con el nombre cambiado a **`config.env`**.
-3. Abre `config.env` con cualquier editor de texto. Pega tus direcciones y claves donde pone `pega-aqui…`.
-4. Abre `docker-compose.yml` y cambia `/ruta/a/tu/media/descubre` por la carpeta del paso 2.
-
-### Paso 4 · Arráncalo
-
-```
-docker compose up -d
-```
-
-En un par de minutos la carpeta se llenará de títulos. Para ver qué está haciendo:
-
-```
-docker logs pidelo
-```
-
-### Paso 5 · Crea la biblioteca en Jellyfin / Emby
-
-1. Crea una biblioteca nueva:
-   - En Jellyfin: *Panel de control → Bibliotecas → Añadir biblioteca*.
-   - En Emby: *Ajustes → Biblioteca → Nueva biblioteca*.
-2. **Tipo de contenido:**
-   - En Jellyfin: **Películas y series mezcladas**.
-   - En Emby: **Contenido mixto**.
-3. **Nombre:** cualquiera que contenga la palabra **Descubre**. Por ejemplo: `✨ Descubre y pide`.
-4. **Carpeta:** la del paso 2.
-5. Activa **TheMovieDb** en las descargas de imágenes y metadatos, para que salgan las carátulas.
-6. Dale acceso a los usuarios que quieras.
-
-¡Listo! 🎉
+✅ **Jellyfin** o **Emby** (o los dos)
+✅ **Seerr**, **Jellyseerr** u **Overseerr**, que ya pide tus películas
+✅ **Docker** (por ejemplo en Unraid)
 
 ---
 
-## Preguntas frecuentes
+## Instalación
 
-**¿Y si alguien le da ❤️ a 50 cosas?**
-Por defecto, cada persona puede pedir **3 al día** y tener **5 esperando** a la vez. Las series se piden solo con la **primera temporada**. Si le gusta, que pida el resto en Seerr. Los administradores no tienen límite. Además, se respetan los cupos que tengas puestos en Seerr. Todo esto se cambia en `config.env`.
+### 1️⃣ Copia 2 claves (o 3)
+
+Son como contraseñas para que Favarr pueda hablar con tus programas.
+
+| Programa | Dónde está la clave |
+|---|---|
+| **Seerr** | ⚙️ Ajustes → General → **Clave API** |
+| **Jellyfin** | ⚙️ Panel de control → **Claves API** → botón **+** |
+| **Emby** | ⚙️ Ajustes → **Claves API** → **Nueva clave** |
+
+### 2️⃣ Instálalo
+
+<details open>
+<summary><b>En Unraid</b></summary>
+
+1. Abre la terminal de Unraid (icono `>_` arriba a la derecha) y pega esto:
+   ```
+   wget -O /boot/config/plugins/dockerMan/templates-user/my-favarr.xml https://raw.githubusercontent.com/nemesbak/favarr/main/unraid/favarr.xml
+   ```
+2. Ve a **Docker** → **Añadir contenedor** → en *Plantilla* elige **favarr**.
+3. Rellena los huecos: las direcciones y las claves del paso 1.
+4. Pulsa **Aplicar**.
+
+</details>
+
+<details>
+<summary><b>Con docker compose (cualquier otro sistema)</b></summary>
+
+1. Descarga [`docker-compose.yml`](docker-compose.yml).
+2. Ábrelo con el Bloc de notas y cambia **solo las líneas con 👉**.
+3. En esa carpeta ejecuta: `docker compose up -d`
+
+</details>
+
+### 3️⃣ Ya está 🎉
+
+En un par de minutos aparece **✨ Descubre y pide** en Jellyfin y en Emby, con portada y carátulas.
+
+Si la creas tú, recuerda el tipo:
+- En Jellyfin: **Películas y series mezcladas**.
+- En Emby: **Contenido mixto**.
+
+---
+
+## La única parte con truco: la carpeta
+
+Favarr necesita **una carpeta nueva y vacía**, en el **mismo disco que tus películas**. Por ejemplo, si tus películas están en `/mnt/user/media/peliculas`, usa `/mnt/user/media/descubre`.
+
+Jellyfin y Emby suelen ver esa carpeta con **otro nombre**. Para saber cuál:
+
+1. Mira cómo ven tus películas. Lo pone en la biblioteca de películas → **Carpetas**.
+2. Si allí sale `/media/peliculas`, la tuya será **`/media/descubre`**.
+
+Eso es lo que va en **«Jellyfin: carpeta»** y en **«Emby: carpeta»**.
+
+> 💡 No ocupa nada: los títulos del escaparate son un vídeo de aviso de 32 KB compartido. 150 títulos ocupan menos de 1 MB.
+
+---
+
+## Preguntas
 
 **¿A nombre de quién se pide?**
-De la persona que le dio al ❤️. Pídelo la busca en Seerr por su usuario de Jellyfin, o por su nombre de usuario si usas Emby. Así cuenta en sus cupos y ves quién pidió qué. Si no la encuentra, no pide nada y avisa al administrador.
+De quien le dio al ❤️, así que cuenta en sus cupos de Seerr. Si esa persona no tiene usuario en Seerr, no se pide nada.
 
-**¿Por qué no salen las películas que están en el cine?**
-Porque todavía no se pueden conseguir. Solo salen las que ya tienen estreno digital o en disco.
+**¿Y si alguien le da ❤️ a todo?**
+Por defecto, cada persona puede:
+- pedir **3 al día**;
+- tener **5 esperando** a la vez;
+- pedir solo la **primera temporada** de las series.
 
-**¿Puedo borrar la biblioteca y olvidarme?**
-Sí. Para el Docker, borra la biblioteca y borra la carpeta. Pídelo no toca nada más de tu servidor.
+Los administradores no tienen límites. Todo se puede cambiar.
 
-**¿Cómo pruebo sin que cambie nada?**
-```
-docker compose run --rm pidelo python pidelo.py prueba
-```
-Te dice lo que haría, sin hacerlo.
+**¿Por qué no salen los estrenos de cine?**
+Porque aún no se pueden conseguir. Solo salen cuando ya se pueden ver en casa.
 
-**¿Cómo activo los avisos por Telegram?**
-1. Crea un bot hablando con [@BotFather](https://t.me/BotFather) y pega su token en `TELEGRAM_TOKEN`.
-2. En `TELEGRAM_ADMIN` pon tu número de chat. Ahí recibirás cada petición y cada problema. Para saber tu número, escribe a [@userinfobot](https://t.me/userinfobot).
-3. Para que tus usuarios reciban sus avisos, añádelos a `TELEGRAM_USUARIOS`, así: `ana=123456,juan=789012`. Antes, cada persona tiene que haberle escrito una vez al bot.
+**¿Avisa por Telegram?**
+Si quieres, sí:
+1. Crea un bot con [@BotFather](https://t.me/BotFather) y pega su clave en `TELEGRAM_TOKEN`.
+2. Pon tu número de chat en `TELEGRAM_ADMIN`. Lo sabes escribiendo a [@userinfobot](https://t.me/userinfobot).
+3. Para avisar a tus usuarios, ponlos así: `TELEGRAM_USUARIOS=ana=123456,juan=789012`.
+
+**¿Puedo probar sin que cambie nada?**
+Sí, con `docker exec favarr python favarr.py prueba`. Te dice lo que haría, sin hacerlo.
+
+**¿Cómo lo quito?**
+Borra el contenedor, la biblioteca y la carpeta. Favarr no toca nada más.
 
 ---
 
-## Todos los ajustes
+<details>
+<summary>Todos los ajustes</summary>
 
-| Ajuste | Para qué sirve | Por defecto |
+| Ajuste | Qué hace | Por defecto |
 |---|---|---|
-| `NOMBRE_BIBLIOTECA` | Palabra que debe llevar el nombre de la biblioteca | `Descubre` |
-| `PELICULAS` / `SERIES` | Cuántas enseñar en el escaparate | `100` / `50` |
-| `IDIOMA` | Idioma de los títulos | `es` |
+| `IDIOMA` | `es` o `en` | `es` |
+| `NOMBRE_BIBLIOTECA` | Nombre de la biblioteca | `✨ Descubre y pide` |
+| `PELICULAS` / `SERIES` | Cuántas enseñar | `100` / `50` |
 | `LIMITE_DIA` | Peticiones por persona y día (0 = sin límite) | `3` |
-| `MAX_PENDIENTES` | Peticiones esperando a la vez por persona (0 = sin límite) | `5` |
-| `SOLO_TEMPORADA_1` | Pedir solo la 1.ª temporada de las series | `si` |
+| `MAX_PENDIENTES` | Esperando a la vez (0 = sin límite) | `5` |
+| `SOLO_TEMPORADA_1` | Series: solo la 1.ª temporada | `si` |
 | `CADA_MINUTOS` | Cada cuánto mira los ❤️ | `2` |
-| `HORA_RENOVAR` | A qué hora renueva el escaparate | `4` |
+| `HORA_RENOVAR` | A qué hora cambia el escaparate | `4` |
 
----
+</details>
 
-Hecho con cariño para servidores caseros. Licencia MIT: úsalo, cámbialo y compártelo.
+<p align="center">Hecho con ❤️ para servidores caseros · Licencia MIT</p>

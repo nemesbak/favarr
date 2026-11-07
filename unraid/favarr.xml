@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>favarr</Name>
+  <Repository>nemesbak/favarr:latest</Repository>
+  <Registry>https://hub.docker.com/r/nemesbak/favarr</Registry>
+  <Network>bridge</Network>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/nemesbak/favarr/issues</Support>
+  <Project>https://github.com/nemesbak/favarr</Project>
+  <Overview>Pide películas y series desde Jellyfin o Emby dándole a ❤️ favorito (vía Seerr). Request movies and shows from Jellyfin or Emby by tapping ❤️ favourite (via Seerr).</Overview>
+  <Category>MediaServer:Video Tools:</Category>
+  <Icon>https://raw.githubusercontent.com/nemesbak/favarr/main/docs/icono.png</Icon>
+  <Config Name="Carpeta del escaparate / Showcase folder" Target="/catalogo" Default="/mnt/user/media/descubre" Mode="rw" Description="Carpeta NUEVA y vacía junto a tus películas / A NEW empty folder next to your movies" Type="Path" Display="always" Required="true">/mnt/user/media/descubre</Config>
+  <Config Name="Datos / Data" Target="/datos" Default="/mnt/user/appdata/favarr" Mode="rw" Description="" Type="Path" Display="advanced" Required="true">/mnt/user/appdata/favarr</Config>
+  <Config Name="Seerr URL" Target="SEERR_URL" Default="http://192.168.1.10:5055" Mode="" Description="Dirección de Seerr / Jellyseerr / Overseerr" Type="Variable" Display="always" Required="true">http://192.168.1.10:5055</Config>
+  <Config Name="Seerr API key" Target="SEERR_API_KEY" Default="" Mode="" Description="Seerr → Ajustes → General → Clave API / Settings → General → API Key" Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Jellyfin URL" Target="JELLYFIN_URL" Default="" Mode="" Description="Vacío si no usas Jellyfin / empty if you don't use Jellyfin" Type="Variable" Display="always" Required="false"></Config>
+  <Config Name="Jellyfin API key" Target="JELLYFIN_API_KEY" Default="" Mode="" Description="Panel de control → Claves API / Dashboard → API Keys" Type="Variable" Display="always" Required="false" Mask="true"></Config>
+  <Config Name="Jellyfin: carpeta / folder" Target="JELLYFIN_CARPETA" Default="" Mode="" Description="La carpeta del escaparate tal como la ve Jellyfin, p. ej. /media/descubre / The showcase folder as Jellyfin sees it" Type="Variable" Display="always" Required="false"></Config>
+  <Config Name="Emby URL" Target="EMBY_URL" Default="" Mode="" Description="Vacío si no usas Emby / empty if you don't use Emby" Type="Variable" Display="always" Required="false"></Config>
+  <Config Name="Emby API key" Target="EMBY_API_KEY" Default="" Mode="" Description="Ajustes → Claves API / Settings → API Keys" Type="Variable" Display="always" Required="false" Mask="true"></Config>
+  <Config Name="Emby: carpeta / folder" Target="EMBY_CARPETA" Default="" Mode="" Description="La carpeta del escaparate tal como la ve Emby / The showcase folder as Emby sees it" Type="Variable" Display="always" Required="false"></Config>
+  <Config Name="Idioma / Language" Target="IDIOMA" Default="es|en" Mode="" Description="es · en" Type="Variable" Display="always" Required="false">es</Config>
+  <Config Name="Límite al día / Daily limit" Target="LIMITE_DIA" Default="3" Mode="" Description="0 = sin límite / unlimited" Type="Variable" Display="advanced" Required="false">3</Config>
+  <Config Name="Máximo esperando / Max waiting" Target="MAX_PENDIENTES" Default="5" Mode="" Description="0 = sin límite / unlimited" Type="Variable" Display="advanced" Required="false">5</Config>
+  <Config Name="Solo temporada 1 / First season only" Target="SOLO_TEMPORADA_1" Default="si|no" Mode="" Description="" Type="Variable" Display="advanced" Required="false">si</Config>
+  <Config Name="Telegram bot token" Target="TELEGRAM_TOKEN" Default="" Mode="" Description="Opcional / optional" Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+  <Config Name="Telegram admin chat" Target="TELEGRAM_ADMIN" Default="" Mode="" Description="Opcional / optional" Type="Variable" Display="advanced" Required="false"></Config>
+  <Config Name="Telegram usuarios / users" Target="TELEGRAM_USUARIOS" Default="" Mode="" Description="ana=123456,juan=789012" Type="Variable" Display="advanced" Required="false"></Config>
+  <Config Name="TZ" Target="TZ" Default="Europe/Madrid" Mode="" Description="" Type="Variable" Display="advanced" Required="false">Europe/Madrid</Config>
+</Container>
