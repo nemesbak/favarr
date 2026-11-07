@@ -26,7 +26,12 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
+
+try:   # que los emojis no rompan en consolas raras (Windows, NAS antiguos)
+    sys.stdout.reconfigure(errors="replace")
+except Exception:
+    pass
 
 
 # ───────────────────────────── configuración ─────────────────────────────
@@ -55,8 +60,8 @@ IDIOMA = env("IDIOMA", "es").lower()[:2]
 NOMBRE_BIBLIOTECA = env("NOMBRE_BIBLIOTECA", "✨ Descubre y pide" if IDIOMA == "es" else "✨ Discover & request")
 PELICULAS = env_int("PELICULAS", 100)
 SERIES = env_int("SERIES", 50)
-LIMITE_DIA = env_int("LIMITE_DIA", 3)
-MAX_PENDIENTES = env_int("MAX_PENDIENTES", 5)
+LIMITE_DIA = env_int("LIMITE_DIA", 0)          # 0 = solo manda el cupo de Seerr
+MAX_PENDIENTES = env_int("MAX_PENDIENTES", 0)  # 0 = solo manda el cupo de Seerr
 SOLO_TEMPORADA_1 = env_si("SOLO_TEMPORADA_1", "si")
 CADA_MINUTOS = max(1, env_int("CADA_MINUTOS", 2))
 HORA_RENOVAR = env_int("HORA_RENOVAR", 4)
@@ -80,6 +85,9 @@ TEXTOS = {
         "temporada1": " (la primera temporada; si te gusta, pide el resto)",
         "sin_usuario": "⚠️ No he podido pedir {t}: tu usuario no está en Seerr. Avisa al administrador.",
         "cupo": "⏳ Has llegado a tu cupo en Seerr. Vuelve a darle ❤️ a {t} cuando se renueve.",
+        "cupo_det": "⏳ Tu cupo es de {n} {que} cada {d} días y ya lo has usado. Vuelve a darle ❤️ a {t} cuando se renueve.",
+        "peli": "película", "pelis": "películas", "temp": "temporada", "temps": "temporadas",
+        "sin_permiso": "⚠️ Tu usuario no tiene permiso para pedir en Seerr. Avisa al administrador.",
         "error": "⚠️ No he podido pedir {t}. Ya lo sabe el administrador.",
         "luego": "⚠️ No he podido pedir {t} ahora mismo. Inténtalo más tarde.",
         "llego": "🎉 Ya está disponible: {t}. ¡A disfrutarlo!",
@@ -95,6 +103,9 @@ TEXTOS = {
         "temporada1": " (first season; if you like it, request the rest)",
         "sin_usuario": "⚠️ I couldn't request {t}: your user isn't in Seerr. Please tell the admin.",
         "cupo": "⏳ You've reached your Seerr quota. Tap ❤️ on {t} again when it resets.",
+        "cupo_det": "⏳ Your quota is {n} {que} every {d} days and you've used it. Tap ❤️ on {t} again when it resets.",
+        "peli": "movie", "pelis": "movies", "temp": "season", "temps": "seasons",
+        "sin_permiso": "⚠️ Your user isn't allowed to request in Seerr. Please tell the admin.",
         "error": "⚠️ I couldn't request {t}. The admin has been told.",
         "luego": "⚠️ I couldn't request {t} right now. Please try again later.",
         "llego": "🎉 Now available: {t}. Enjoy!",
@@ -361,6 +372,12 @@ def renovar():
 
 
 # ───────────────────────────── los ❤️ ─────────────────────────────
+class CupoAgotado(Exception):
+    def __init__(self, q):
+        super().__init__("cupo")
+        self.q = q
+
+
 def usuario_seerr(usuarios, srv, uid, nombre):
     if srv == "jellyfin":
         for u in usuarios:
@@ -439,12 +456,21 @@ def atender(est, s, u, it, usuarios_seerr, hoy):
         try:
             if sid is None:
                 raise LookupError
+            # Los límites mandan desde Seerr (cupo de cada usuario): se mira ANTES de pedir para no
+            # gastar nada y avisar con claridad. limit 0 = sin límite.
+            q = (seerr("GET", f"/user/{sid}/quota") or {}).get(tipo) or {}
+            if q.get("limit") and q.get("remaining", 0) < 1:
+                raise CupoAgotado(q)
             if not PRUEBA:
                 seerr("POST", "/request", cuerpo, usuario=sid)
             est["pedidos"][clave] = {"nombre": nombre, "usuario": quien, "chat": chat, "fecha": hoy}
             est["cuenta"][hoy][quien] = hechas + 1
             texto = txt("pedido", t=t, extra=txt("temporada1") if solo_t1 else "")
             telegram(TG_ADMIN, txt("adm_pedido", u=quien, t=t, s=s.capitalize()))
+        except CupoAgotado as c:
+            n = c.q.get("limit", 0)
+            que = txt("peli" if tipo == "movie" else "temp") if n == 1 else txt("pelis" if tipo == "movie" else "temps")
+            texto = txt("cupo_det", n=n, que=que, d=c.q.get("days", 0), t=t)
         except LookupError:
             texto = txt("sin_usuario", t=t)
             telegram(TG_ADMIN, txt("adm_sin_usuario", u=quien, s=s, t=t))
@@ -452,6 +478,9 @@ def atender(est, s, u, it, usuarios_seerr, hoy):
             detalle = e.read().decode(errors="replace")[:300]
             if e.code == 403 and "uota" in detalle:
                 texto = txt("cupo", t=t)
+            elif e.code == 403:
+                texto = txt("sin_permiso", t=t)
+                telegram(TG_ADMIN, txt("adm_error", c=e.code, t=t, u=quien, d=detalle[:150]))
             elif e.code == 409:
                 est["pedidos"][clave] = {"nombre": nombre, "usuario": quien, "chat": chat, "fecha": hoy}
                 texto = txt("ya_pedido", t=t)
@@ -489,21 +518,40 @@ def avisar_llegadas(est):
 
 
 # ───────────────────────────── arranque ─────────────────────────────
+def explicar(e):
+    """Error de conexión en palabras normales."""
+    if isinstance(e, urllib.error.HTTPError) and e.code in (401, 403):
+        return "la clave API no es correcta / wrong API key"
+    if isinstance(e, urllib.error.HTTPError):
+        return f"responde con error {e.code} / answers with error {e.code}"
+    return "no contesta: revisa la dirección y el puerto / no answer: check address and port"
+
+
 def comprobar():
-    faltan = [n for n, v in (("SEERR_URL", SEERR_URL), ("SEERR_API_KEY", SEERR_KEY)) if not v]
+    """Comprueba la configuración y explica qué falla. Un servidor mal puesto no para a los demás."""
+    for s in list(SERVIDORES):
+        if "pega-aqui" in SERVIDORES[s][1]:
+            log(f"⚠️  {s}: falta la clave API (pone «pega-aqui…») / API key missing → lo ignoro / skipped")
+            del SERVIDORES[s]
+    if not SEERR_URL or not SEERR_KEY or "pega-aqui" in SEERR_KEY:
+        sys.exit("❌ Falta SEERR_URL o SEERR_API_KEY / missing SEERR_URL or SEERR_API_KEY")
     if not SERVIDORES:
-        faltan.append("JELLYFIN_URL + JELLYFIN_API_KEY  /  EMBY_URL + EMBY_API_KEY")
-    if faltan:
-        sys.exit("❌ Falta / missing: " + ", ".join(faltan))
+        sys.exit("❌ Falta Jellyfin o Emby (dirección + clave) / Jellyfin or Emby missing (URL + key)")
     try:
-        seerr("GET", "/status")
+        seerr("GET", "/settings/main")
     except Exception as e:
-        sys.exit(f"❌ No llego a Seerr / can't reach Seerr ({SEERR_URL}): {e}")
-    for s in SERVIDORES:
+        sys.exit(f"❌ Seerr ({SEERR_URL}): {explicar(e)}")
+    for s in list(SERVIDORES):
         try:
             servidor(s, "GET", "/System/Info")
         except Exception as e:
-            sys.exit(f"❌ No llego a {s} / can't reach {s} ({SERVIDORES[s][0]}): {e}")
+            log(f"⚠️  {s.capitalize()} ({SERVIDORES[s][0]}): {explicar(e)} → lo ignoro / skipped")
+            del SERVIDORES[s]
+        else:
+            if not SERVIDORES[s][2]:
+                log(f"ℹ️  {s.capitalize()}: sin {s.upper()}_CARPETA no creo la biblioteca; créala tú (README)")
+    if not SERVIDORES:
+        sys.exit("❌ Ni Jellyfin ni Emby responden / neither Jellyfin nor Emby answers")
     log(f"Favarr {VERSION} · Seerr ✔ · " + " · ".join(f"{s.capitalize()} ✔" for s in SERVIDORES)
         + (" · Telegram ✔" if TG_TOKEN else ""))
 

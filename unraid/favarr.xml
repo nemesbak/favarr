@@ -22,8 +22,8 @@
   <Config Name="Emby API key" Target="EMBY_API_KEY" Default="" Mode="" Description="Ajustes → Claves API / Settings → API Keys" Type="Variable" Display="always" Required="false" Mask="true"></Config>
   <Config Name="Emby: carpeta / folder" Target="EMBY_CARPETA" Default="" Mode="" Description="La carpeta del escaparate tal como la ve Emby / The showcase folder as Emby sees it" Type="Variable" Display="always" Required="false"></Config>
   <Config Name="Idioma / Language" Target="IDIOMA" Default="es|en" Mode="" Description="es · en" Type="Variable" Display="always" Required="false">es</Config>
-  <Config Name="Límite al día / Daily limit" Target="LIMITE_DIA" Default="3" Mode="" Description="0 = sin límite / unlimited" Type="Variable" Display="advanced" Required="false">3</Config>
-  <Config Name="Máximo esperando / Max waiting" Target="MAX_PENDIENTES" Default="5" Mode="" Description="0 = sin límite / unlimited" Type="Variable" Display="advanced" Required="false">5</Config>
+  <Config Name="Límite al día / Daily limit" Target="LIMITE_DIA" Default="0" Mode="" Description="Freno extra. 0 = solo el cupo de Seerr / extra limit, 0 = Seerr quota only" Type="Variable" Display="advanced" Required="false">0</Config>
+  <Config Name="Máximo esperando / Max waiting" Target="MAX_PENDIENTES" Default="0" Mode="" Description="Freno extra. 0 = solo el cupo de Seerr / extra limit, 0 = Seerr quota only" Type="Variable" Display="advanced" Required="false">0</Config>
   <Config Name="Solo temporada 1 / First season only" Target="SOLO_TEMPORADA_1" Default="si|no" Mode="" Description="" Type="Variable" Display="advanced" Required="false">si</Config>
   <Config Name="Telegram bot token" Target="TELEGRAM_TOKEN" Default="" Mode="" Description="Opcional / optional" Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
   <Config Name="Telegram admin chat" Target="TELEGRAM_ADMIN" Default="" Mode="" Description="Opcional / optional" Type="Variable" Display="advanced" Required="false"></Config>
