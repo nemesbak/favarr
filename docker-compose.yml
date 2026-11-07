@@ -1,0 +1,9 @@
+services:
+  pidelo:
+    build: https://github.com/nemesbak/pidelo.git
+    container_name: pidelo
+    restart: unless-stopped
+    env_file: config.env
+    volumes:
+      - /ruta/a/tu/media/descubre:/catalogo   # carpeta NUEVA y vacía para el escaparate
+      - ./datos:/datos                         # aquí guarda quién ha pedido qué
