@@ -26,7 +26,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 
 try:   # que los emojis no rompan en consolas raras (Windows, NAS antiguos)
     sys.stdout.reconfigure(errors="replace")
@@ -91,6 +91,8 @@ TEXTOS = {
         "error": "⚠️ No he podido pedir {t}. Ya lo sabe el administrador.",
         "luego": "⚠️ No he podido pedir {t} ahora mismo. Inténtalo más tarde.",
         "llego": "🎉 Ya está disponible: {t}. ¡A disfrutarlo!",
+        "rechazado": "❌ Al final no se ha podido conseguir {t}.",
+        "adm_rechazado": "🗑️ {t} (de {u}) ya no está pedido en Seerr: lo olvido.",
         "adm_pedido": "📥 {u} ha pedido {t} desde {s}.",
         "adm_sin_usuario": "⚠️ {u} ({s}) ha dado ❤️ a {t} pero no tiene usuario en Seerr.",
         "adm_error": "⚠️ Seerr ha dado error {c} al pedir {t} para {u}: {d}",
@@ -109,6 +111,8 @@ TEXTOS = {
         "error": "⚠️ I couldn't request {t}. The admin has been told.",
         "luego": "⚠️ I couldn't request {t} right now. Please try again later.",
         "llego": "🎉 Now available: {t}. Enjoy!",
+        "rechazado": "❌ {t} couldn't be added in the end.",
+        "adm_rechazado": "🗑️ {t} (from {u}) is no longer requested in Seerr: forgetting it.",
         "adm_pedido": "📥 {u} requested {t} from {s}.",
         "adm_sin_usuario": "⚠️ {u} ({s}) tapped ❤️ on {t} but has no Seerr user.",
         "adm_error": "⚠️ Seerr returned error {c} requesting {t} for {u}: {d}",
@@ -463,7 +467,7 @@ def atender(est, s, u, it, usuarios_seerr, hoy):
                 raise CupoAgotado(q)
             if not PRUEBA:
                 seerr("POST", "/request", cuerpo, usuario=sid)
-            est["pedidos"][clave] = {"nombre": nombre, "usuario": quien, "chat": chat, "fecha": hoy}
+            est["pedidos"][clave] = {"nombre": nombre, "usuario": quien, "chat": chat, "fecha": hoy, "hora": time.time()}
             est["cuenta"][hoy][quien] = hechas + 1
             texto = txt("pedido", t=t, extra=txt("temporada1") if solo_t1 else "")
             telegram(TG_ADMIN, txt("adm_pedido", u=quien, t=t, s=s.capitalize()))
@@ -505,6 +509,15 @@ def avisar_llegadas(est):
         try:
             estado = (seerr("GET", f"/{tipo}/{tmdb}").get("mediaInfo") or {}).get("status", 1)
         except Exception:
+            continue
+        if estado <= 1 and time.time() - p.get("hora", 0) > 600:
+            # Seerr vuelve a «desconocido» si la petición se rechaza o se borra: se olvida, sale del
+            # escaparate el aviso de «ya pedido» y la persona puede pedir otra cosa.
+            log(f"Ya no está pedido en Seerr: {p['nombre']} ({p['usuario']})")
+            telegram(p.get("chat"), txt("rechazado", t=f"<b>{p['nombre']}</b>"))
+            telegram(TG_ADMIN, txt("adm_rechazado", t=f"<b>{p['nombre']}</b>", u=p["usuario"]))
+            if not PRUEBA:
+                del est["pedidos"][clave]
             continue
         if estado >= (4 if tipo == "tv" else 5):
             log(f"Ya está: {p['nombre']} ({p['usuario']})")

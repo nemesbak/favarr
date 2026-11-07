@@ -138,7 +138,7 @@ In a couple of minutes **✨ Discover & request** appears in Jellyfin and in Emb
 Look at the container log. On Unraid: Docker → favarr icon → **Logs**. With compose: `docker logs favarr`. You should see something like:
 
 ```
-Favarr 1.2.0 · Seerr ✔ · Jellyfin ✔ · Emby ✔
+Favarr 1.3.0 · Seerr ✔ · Jellyfin ✔ · Emby ✔
 jellyfin: biblioteca «✨ Discover & request» creada ✔
 Escaparate: 100 películas y 50 series (150 nuevas, 0 quitadas)
 ```
@@ -186,6 +186,12 @@ Want an extra brake? Set `LIMITE_DIA` and `MAX_PENDIENTES` (see the settings).
 <summary><b>Who is the request made for?</b></summary>
 
 Whoever tapped ❤️. It counts towards their Seerr quota and you can see who asked for what.
+</details>
+
+<details>
+<summary><b>What if I decline a request in Seerr?</b></summary>
+
+Favarr notices by itself: it forgets the request and tells that person *"❌ … couldn't be added in the end"*. If someone taps ❤️ again, it's requested again.
 </details>
 
 <details>

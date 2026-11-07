@@ -137,7 +137,7 @@ En un par de minutos aparece **✨ Descubre y pide** en Jellyfin y en Emby, con 
 Mira el registro del contenedor. En Unraid: Docker → icono de favarr → **Registros**. Con compose: `docker logs favarr`. Tienes que ver algo así:
 
 ```
-Favarr 1.2.0 · Seerr ✔ · Jellyfin ✔ · Emby ✔
+Favarr 1.3.0 · Seerr ✔ · Jellyfin ✔ · Emby ✔
 jellyfin: biblioteca «✨ Descubre y pide» creada ✔
 Escaparate: 100 películas y 50 series (150 nuevas, 0 quitadas)
 ```
@@ -183,6 +183,12 @@ Si quieres un freno extra, puedes poner `LIMITE_DIA` y `MAX_PENDIENTES` (ver los
 <summary><b>¿A nombre de quién se pide?</b></summary>
 
 De quien le dio al ❤️. Así cuenta en sus cupos de Seerr y sabes quién pidió qué.
+</details>
+
+<details>
+<summary><b>¿Y si rechazo una petición en Seerr?</b></summary>
+
+Favarr se da cuenta solo: la olvida y avisa a esa persona con un *«❌ Al final no se ha podido conseguir…»*. Si alguien vuelve a darle ❤️, se pide de nuevo.
 </details>
 
 <details>
