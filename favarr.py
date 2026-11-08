@@ -26,7 +26,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 
 try:   # que los emojis no rompan en consolas raras (Windows, NAS antiguos)
     sys.stdout.reconfigure(errors="replace")
@@ -426,7 +426,8 @@ def vigilar():
                 for it in favs:
                     atender(est, s, u, it, usuarios_seerr, hoy)
     avisar_llegadas(est)
-    limite = (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
+    limpiar_escaparate(est)
+    limite =(datetime.date.today() - datetime.timedelta(days=7)).isoformat()
     est["cuenta"] = {d: c for d, c in est["cuenta"].items() if d >= limite}
     guardar_estado(est)
 
@@ -528,6 +529,36 @@ def avisar_llegadas(est):
                     for c in os.listdir(CATALOGO):
                         if f"[tmdbid-{tmdb}]" in c:
                             shutil.rmtree(os.path.join(CATALOGO, c), ignore_errors=True)
+
+
+def limpiar_escaparate(est):
+    """Cada 30 min: lo que ya llegó (o alguien pidió) por otro camino —Radarr, Sonarr, Seerr— sale del
+    escaparate sin esperar a la renovación diaria. Lo pedido con ❤️ lo gestiona avisar_llegadas."""
+    if time.time() - est.get("limpiado", 0) < 1800 or not os.path.isdir(CATALOGO):
+        return
+    est["limpiado"] = time.time()
+    pedidos = {k.split(":")[1] for k in est["pedidos"]}
+    quitadas = 0
+    for c in os.listdir(CATALOGO):
+        m = re.search(r"\[tmdbid-(\d+)\]", c)
+        if c.startswith(".") or not m or m.group(1) in pedidos:
+            continue
+        tipo = "movie" if os.path.isfile(os.path.join(CATALOGO, c, f"{c}.mkv")) else "tv"
+        try:
+            estado = (seerr("GET", f"/{tipo}/{m.group(1)}").get("mediaInfo") or {}).get("status", 1)
+        except Exception:
+            continue
+        if estado >= 2:
+            quitadas += 1
+            log(f"Ya está en el servidor (o pedido): fuera del escaparate {c}")
+            if not PRUEBA:
+                shutil.rmtree(os.path.join(CATALOGO, c), ignore_errors=True)
+    if quitadas and not PRUEBA:
+        for s in SERVIDORES:
+            try:
+                releer(s)
+            except Exception as e:
+                log(f"{s}: no he podido releer la biblioteca:", e)
 
 
 # ───────────────────────────── arranque ─────────────────────────────
