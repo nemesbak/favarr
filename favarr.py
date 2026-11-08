@@ -26,7 +26,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-VERSION = "1.3.1"
+VERSION = "1.3.2"
 
 try:   # que los emojis no rompan en consolas raras (Windows, NAS antiguos)
     sys.stdout.reconfigure(errors="replace")
@@ -504,7 +504,16 @@ def atender(est, s, u, it, usuarios_seerr, hoy):
     telegram(chat, texto)
 
 
+def releer_todos():
+    for s in SERVIDORES:
+        try:
+            releer(s)
+        except Exception as e:
+            log(f"{s}: no he podido releer la biblioteca:", e)
+
+
 def avisar_llegadas(est):
+    quitadas = 0
     for clave, p in list(est["pedidos"].items()):
         tipo, tmdb = clave.split(":")
         try:
@@ -529,6 +538,9 @@ def avisar_llegadas(est):
                     for c in os.listdir(CATALOGO):
                         if f"[tmdbid-{tmdb}]" in c:
                             shutil.rmtree(os.path.join(CATALOGO, c), ignore_errors=True)
+                            quitadas += 1
+    if quitadas:
+        releer_todos()
 
 
 def limpiar_escaparate(est):
@@ -554,11 +566,7 @@ def limpiar_escaparate(est):
             if not PRUEBA:
                 shutil.rmtree(os.path.join(CATALOGO, c), ignore_errors=True)
     if quitadas and not PRUEBA:
-        for s in SERVIDORES:
-            try:
-                releer(s)
-            except Exception as e:
-                log(f"{s}: no he podido releer la biblioteca:", e)
+        releer_todos()
 
 
 # ───────────────────────────── arranque ─────────────────────────────
